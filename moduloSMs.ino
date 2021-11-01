@@ -18,10 +18,12 @@ int lentPhones = 1;
 int countPhone = 0;
 int inputValue = 0;
 String comando = "";
+String mensaje = "";
 boolean enviarMensaje = false;
 
 //constantes de funcionamiento
-const String ALARMA_MSG = "Alarma activada";
+const String ALARMA_MSG_ON = "Alarma activada";
+const String ALARMA_MSG_OFF = "Alarma desactivada";
 const String ENCENDER = "Encender";
 const String APAGAR = "Apagar";
 
@@ -64,7 +66,7 @@ bool function_to_call() {
   }
 
   if(inputValue == HIGH && enviarMensaje){
-    sendSMS(phonesNumbers[countPhone]);
+    sendSMS(phonesNumbers[countPhone], ALARMA_MSG_ON);
     countPhone = countPhone + 1;
   }
 
@@ -104,7 +106,7 @@ String debugMsg(String msg){
   return "debug --> " + msg; 
 }
 
-void sendSMS(String number){
+void sendSMS(String number, String msg){
   Serial.println(debugMsg("enviando sms al numero: " + number));
   SIM800.println("AT");
   updateSerial();
@@ -112,7 +114,7 @@ void sendSMS(String number){
   updateSerial();
   SIM800.println("AT+CMGS=\""+number+"\"");
   updateSerial();
-  SIM800.print(ALARMA_MSG +"\r\n");
+  SIM800.print(msg +"\r\n");
   updateSerial();
   SIM800.write(0x1A);  
   delay(1000);
@@ -149,23 +151,44 @@ void updateSerial(){
 }
 
 void setRelay(){
+  String phoneNumber = "";
+
   while(SIM800.available()) 
   { 
     char recieved = SIM800.read();
     comando += recieved;
+    mensaje += recieved;
 
     if (recieved == '\n'){
+
+      Serial.println(mensaje);
+      phoneNumber = getPhoneNumberEmmiter(mensaje);
+
       if(comando.indexOf(APAGAR) != -1){
         Serial.println(debugMsg("APAGAR"));
         digitalWrite(relay1, HIGH);
+        delay(50);
+        sendSMS(phoneNumber, ALARMA_MSG_OFF);
       }
 
       if(comando.indexOf(ENCENDER) != -1){
         Serial.println(debugMsg("ENCENDER"));
         digitalWrite(relay1, LOW);
+        delay(50);
+        sendSMS(phoneNumber, ALARMA_MSG_ON);
       }
       
       comando = "";
     }
   }
+}
+
+
+String getPhoneNumberEmmiter(String mensaje){
+      int indexPhone = mensaje.indexOf("\"");
+
+      if( indexPhone != -1){
+        return mensaje.substring(indexPhone + 1, indexPhone + 14);
+      }
+      return "";
 }
