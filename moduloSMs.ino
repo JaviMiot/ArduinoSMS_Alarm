@@ -13,19 +13,23 @@ auto timer = timer_create_default();
 
 SoftwareSerial SIM800(sim800Rx, sim800Tx); //Seleccionamos los pines 7 como Rx y 8 como Tx
 
-String phonesNumbers[] = {"+593983942677"} ;
-int lentPhones = 1;
+const String phonesNumbers[] = {"+593963358314"} ;
+const int lentPhones = 1;
+
 int countPhone = 0;
 int inputValue = 0;
 String comando = "";
 String mensaje = "";
 boolean enviarMensaje = false;
+boolean habilitarLlamada = true;
 
 //constantes de funcionamiento
-const String ALARMA_MSG_ON = "Alarma activada";
-const String ALARMA_MSG_OFF = "Alarma desactivada";
+const String ALARMA_MSG_ON = "Alarma ENCENDIDA";
+const String ALARMA_MSG_OFF = "Alarma APAGADA";
+const String ALARMA_MSG_ACTIVADO = "Alarma ACTIVADA";
 const String ENCENDER = "Encender";
 const String APAGAR = "Apagar";
+const String ACTIVAR = "Activar";
 
 void setup()
 {
@@ -60,14 +64,16 @@ bool function_to_call() {
     countPhone = 0;
   }
 
-  if(inputValue == HIGH && !enviarMensaje){
-    call(phonesNumbers[countPhone]);
-    countPhone = countPhone + 1;
-  }
+  if(habilitarLlamada){
+    if(inputValue == HIGH && !enviarMensaje){
+      call(phonesNumbers[countPhone]);
+      countPhone = countPhone + 1;
+    }
 
-  if(inputValue == HIGH && enviarMensaje){
-    sendSMS(phonesNumbers[countPhone], ALARMA_MSG_ON);
-    countPhone = countPhone + 1;
+    if(inputValue == HIGH && enviarMensaje){
+      sendSMS(phonesNumbers[countPhone], ALARMA_MSG_ON);
+      countPhone = countPhone + 1;
+    }
   }
 
   return true;
@@ -169,6 +175,7 @@ void setRelay(){
         digitalWrite(relay1, HIGH);
         delay(50);
         sendSMS(phoneNumber, ALARMA_MSG_OFF);
+        habilitarLlamada = false;
       }
 
       if(comando.indexOf(ENCENDER) != -1){
@@ -177,10 +184,19 @@ void setRelay(){
         delay(50);
         sendSMS(phoneNumber, ALARMA_MSG_ON);
       }
+
+       if(comando.indexOf(ACTIVAR) != -1){
+        Serial.println(debugMsg("activar"));
+        delay(50);
+        sendSMS(phoneNumber, ALARMA_MSG_ACTIVADO);
+        habilitarLlamada = true;
+      }
       
       comando = "";
     }
   }
+
+  mensaje = "";
 }
 
 
