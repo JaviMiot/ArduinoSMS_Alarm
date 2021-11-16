@@ -65,12 +65,12 @@ bool function_to_call() {
   }
 
   if(habilitarLlamada){
-    if(inputValue == HIGH && !enviarMensaje){
+    if(inputValue == LOW && !enviarMensaje){
       call(phonesNumbers[countPhone]);
       countPhone = countPhone + 1;
     }
 
-    if(inputValue == HIGH && enviarMensaje){
+    if(inputValue == LOW && enviarMensaje){
       sendSMS(phonesNumbers[countPhone], ALARMA_MSG_ON);
       countPhone = countPhone + 1;
     }
