@@ -13,8 +13,8 @@ auto timer = timer_create_default();
 
 SoftwareSerial SIM800(sim800Rx, sim800Tx); //Seleccionamos los pines 7 como Rx y 8 como Tx
 
-const String phonesNumbers[] = {"+593963358314"} ;
-const int lentPhones = 1;
+const String phonesNumbers[] = { "+593987426862","+593959013877","+593995488285","+593989364613", "+593983942677", "+593982227279"};
+const int lentPhones = 6;
 
 int countPhone = 0;
 int inputValue = 0;
@@ -41,7 +41,7 @@ void setup()
  initSim800();
  getSMS();
    //*configuro timer
-  timer.every(50000,function_to_call );
+  timer.every(5000,function_to_call );
 }
 
 
@@ -65,12 +65,12 @@ bool function_to_call() {
   }
 
   if(habilitarLlamada){
-    if(inputValue == LOW && !enviarMensaje){
+    if(inputValue == LOW && enviarMensaje){
       call(phonesNumbers[countPhone]);
       countPhone = countPhone + 1;
     }
 
-    if(inputValue == LOW && enviarMensaje){
+    if(inputValue == LOW && !enviarMensaje){
       sendSMS(phonesNumbers[countPhone], ALARMA_MSG_ON);
       countPhone = countPhone + 1;
     }
@@ -86,6 +86,7 @@ void configInputOutput(){
   pinMode(relay2, OUTPUT);   
   pinMode(input_signal, INPUT_PULLUP); 
   digitalWrite(relay1, HIGH);
+  digitalWrite(relay2, HIGH);
 }
 
 void activePowerSim(){
@@ -123,7 +124,7 @@ void sendSMS(String number, String msg){
   SIM800.print(msg +"\r\n");
   updateSerial();
   SIM800.write(0x1A);  
-  delay(1000);
+  delay(10000);
 }
 
 void getSMS(){
@@ -172,7 +173,8 @@ void setRelay(){
 
       if(comando.indexOf(APAGAR) != -1){
         Serial.println(debugMsg("APAGAR"));
-        digitalWrite(relay1, HIGH);
+        digitalWrite(relay1, LOW);
+        digitalWrite(relay2, LOW);
         delay(50);
         sendSMS(phoneNumber, ALARMA_MSG_OFF);
         habilitarLlamada = false;
@@ -180,7 +182,8 @@ void setRelay(){
 
       if(comando.indexOf(ENCENDER) != -1){
         Serial.println(debugMsg("ENCENDER"));
-        digitalWrite(relay1, LOW);
+        digitalWrite(relay1, HIGH);
+        digitalWrite(relay2, HIGH);
         delay(50);
         sendSMS(phoneNumber, ALARMA_MSG_ON);
       }
